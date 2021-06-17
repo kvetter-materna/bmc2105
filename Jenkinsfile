@@ -1,15 +1,38 @@
 pipeline {
+
   environment {
-    registry = ""
+    registry = "314068309843.dkr.ecr.eu-central-1.amazonaws.com"
     dockerImage = ""
   }
+
   agent any
+
   stages {
+
     stage('Checkout Source') {
       steps {
-        git 'https://github.com/kvetter-materna/bmc2105'
+        git 'https://github.com/justmeandopensource/playjenkins.git'
       }
     }
+
+    stage('Build image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+
+    stage('Push Image') {
+      steps{
+        script {
+          docker.withRegistry( "" ) {
+            dockerImage.push()
+          }
+        }
+      }
+    }
+
     stage('Deploy App') {
       steps {
         script {
@@ -17,5 +40,7 @@ pipeline {
         }
       }
     }
+
   }
+
 }
