@@ -1,10 +1,59 @@
-apiVersion: v1
-kind: Pod
+---
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: nginx
+  name: start-seite-pod-2
+  labels:
+   app: nginx
 spec:
-  containers:
-  - name: nginx
-    image: nginx:1.14.2
-    ports:
-    - containerPort: 80
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx-pv-container
+        image: nginx
+        ports:
+        - containerPort: 80
+        volumeMounts:
+        - name: nginx-pv-storage
+          mountPath: "/usr/share/nginx/html"
+      volumes:
+      - name: nginx-pv-storage
+        persistentVolumeClaim:
+          claimName: nginx-pv-claim
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: start-seite-service-2
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 80 # Default port for image
+---
+
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: start-seite-ingress-2
+  annotations:
+    ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: materna-itsm-poc.de
+    http:
+      paths:
+        - path: /start2
+          backend:
+            serviceName: start-seite-service-2
+            servicePort: 80
+
+
+
