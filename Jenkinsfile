@@ -1,14 +1,10 @@
 pipeline {
-
   environment {
     registry = ""
     dockerImage = ""
   }
-
   agent any
-
   stages {
-
     stage('Checkout Source') {
       steps {
         git 'https://github.com/kvetter-materna/bmc2105'
@@ -21,7 +17,5 @@ pipeline {
         }
       }
     }
-
   }
-
 }
