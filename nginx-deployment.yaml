@@ -1,10 +1,62 @@
-apiVersion: v1
-kind: Pod
-metadata:
-  name: nginx
-spec:
-  containers:
-  - name: nginx
-    image: nginx:1.14.2
-    ports:
-    - containerPort: 80
+group: rsso-dev
+
+fluentbitimage:
+  enabled: false
+  pullPolicy: IfNotPresent
+  flush: 1
+  logLevel: info
+  refreshInterval: 10
+  memBufLimit: 5MB
+  resources:
+    enabled: true
+    items:
+      requests:
+        memory: "100Mi"
+        cpu: "0.10"
+      limits:
+        memory: "500Mi"
+        cpu: "0.5"
+container:
+  env:
+    custom:
+      RSSO_EXTERNAL_URL: "https://materna-itsm-poc.de/rsso"
+  javaopts: "-XX:+UseCompressedOops -XX:+UseConcMarkSweepGC -XX:NewRatio=2 -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m -XX:+HeapDumpOnOutOfMemoryError -Dcom.sun.management.jmxremote.port=9086 -Dcom.sun.management.jmxremote.rmi.port=9086 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false"  
+  javaMinHeap: -Xms2048m
+  javaMaxHeap: -Xmx2048m
+  serviceAccount:
+    enabled: false
+    name: "<if service accountname, give it here>"
+  cpuRequest: 750m  
+  memoryRequest: 2Gi
+  cpuLimit: 1
+  memoryLimit: 4Gi
+
+db:
+  server: jdbc:sqlserver://aws-itsm-mssql-v8.cwox3g15axjx.eu-central-1.rds.amazonaws.com:1433;databaseName=materna_poc_rsso;multisubnetFailover=false;
+  user: materna_poc_rssoadm
+  password: Materna123
+  dbtype: mssql
+
+hpa:
+  minReplicas: 1
+
+ingress:
+  enabled: true
+  hostSelector: "materna-itsm-poc"
+  # Einheitliche verwendung von - host: "{{ .Values.ingress.hostSelector }}.{{ .Values.ingress.domain }}"
+  domain: "de"
+  svcPort: 8080
+  tls: false
+
+route:
+  enabled: false
+  hostSelector: <rsso host - custprod-rsso.apps.onbmc.com>
+  domain: onbmc.com
+  svcPort: 8080
+
+triggerUpgrade: 1
+keystore:
+  enabled: false
+  secretName: rsso-custom-key-store
+  base64EncodedSigningJksFile: cot.jks
+
